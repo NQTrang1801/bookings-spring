@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings>
+    <GroupMapping name="CustomerResDTO">
+        <ObjectMapping name="DEFAULT">
+            <Field source="id" target="customerId"/>
+            <Field source="firstName" target="firstName"/>
+            <Field source="lastName" target="lastName"/>
+            <Field source="gender" target="sex"/>
+            <Field source="email" target="email"/>
+            <Field source="phone" target="phone"/>
+        </ObjectMapping>
+
+        <ObjectMapping name="BASIC">
+            <Field source="id" target="customerId"/>
+            <Field source="firstName" target="firstName"/>
+            <Field source="lastName" target="lastName"/>
+        </ObjectMapping>
+
+        <ObjectMapping name="FULL">
+            <Field source="id" target="customerId"/>
+            <Field source="firstName" target="firstName"/>
+            <Field source="lastName" target="lastName"/>
+            <Field source="gender" target="sex"/>
+            <Field source="email" target="email"/>
+            <Field source="phone" target="phone"/>
+            <Field source="address.street" target="address.street"/>
+            <Field source="address.city" target="address.city"/>
+            <Field source="address.country" target="address.country"/>
+        </ObjectMapping>
+    </GroupMapping>
+</mappings>
