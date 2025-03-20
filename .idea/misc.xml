@@ -10,12 +10,16 @@
         <option value="$PROJECT_DIR$/services/config-server/pom.xml" />
         <option value="$PROJECT_DIR$/services/discovery/pom.xml" />
         <option value="$PROJECT_DIR$/services/customer/pom.xml" />
+        <option value="$PROJECT_DIR$/services/booking/pom.xml" />
+        <option value="$PROJECT_DIR$/flight/pom.xml" />
+        <option value="$PROJECT_DIR$/services/flight/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/api-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/discovery-service/pom.xml" />
+        <option value="$PROJECT_DIR$/flight/pom.xml" />
       </set>
     </option>
   </component>
