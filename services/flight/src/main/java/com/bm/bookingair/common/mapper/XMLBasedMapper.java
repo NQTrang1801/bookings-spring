@@ -3,12 +3,10 @@ package com.bm.bookingair.common.mapper;
 import com.bm.bookingair.common.constant.AppConstants;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.*;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Component
@@ -21,48 +19,35 @@ public class XMLBasedMapper implements GenericMapper<Object, Object> {
     }
 
     private void loadMappings(String xmlFile) {
-        try {
-            File file = new File(xmlFile);
-            if (!file.exists()) {
-                throw new RuntimeException("Mapping configuration file not found: " + xmlFile);
-            }
+        File file = new File(xmlFile);
+        if (!file.exists()) {
+            throw new RuntimeException("Mapping configuration file not found: " + xmlFile);
+        }
 
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document document = builder.parse(file);
+        try {
+            Document document = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder()
+                    .parse(file);
             document.getDocumentElement().normalize();
 
             NodeList groupNodes = document.getElementsByTagName("GroupMapping");
 
             for (int i = 0; i < groupNodes.getLength(); i++) {
                 Element groupElement = (Element) groupNodes.item(i);
-                String className = groupElement.getAttribute("name"); // Lấy tên class từ GroupMapping
-
-                if (className.isEmpty()) {
-                    throw new RuntimeException("Missing 'name' attribute in GroupMapping");
-                }
+                String className = getRequiredAttribute(groupElement, "name");
 
                 NodeList objectNodes = groupElement.getElementsByTagName("ObjectMapping");
-
                 for (int j = 0; j < objectNodes.getLength(); j++) {
                     Element objectElement = (Element) objectNodes.item(j);
-                    String level = objectElement.getAttribute("name");
+                    String level = getRequiredAttribute(objectElement, "name");
 
-                    if (level.isEmpty()) {
-                        throw new RuntimeException("Missing 'name' attribute in ObjectMapping");
-                    }
-
-                    String mappingKey = className + "." + level;
-
+                    Map<String, String> fieldMap = mappings.computeIfAbsent(className + "." + level, k -> new HashMap<>());
                     NodeList fieldNodes = objectElement.getElementsByTagName("Field");
-                    Map<String, String> fieldMap = new HashMap<>();
 
                     for (int k = 0; k < fieldNodes.getLength(); k++) {
                         Element fieldElement = (Element) fieldNodes.item(k);
                         fieldMap.put(fieldElement.getAttribute("source"), fieldElement.getAttribute("target"));
                     }
-
-                    mappings.put(mappingKey, fieldMap);
                 }
             }
         } catch (Exception e) {
@@ -71,6 +56,13 @@ public class XMLBasedMapper implements GenericMapper<Object, Object> {
         }
     }
 
+    private String getRequiredAttribute(Element element, String attrName) {
+        String value = element.getAttribute(attrName);
+        if (value.isEmpty()) {
+            throw new RuntimeException("Missing '" + attrName + "' attribute in " + element.getTagName());
+        }
+        return value;
+    }
 
     @Override
     public <T> T map(Object source, Class<T> targetType, String level) {
@@ -83,9 +75,13 @@ public class XMLBasedMapper implements GenericMapper<Object, Object> {
                 throw new RuntimeException("Mapping type " + mappingKey + " not found!");
             }
 
-            for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-                setNestedField(source, target, entry.getKey(), entry.getValue());
-            }
+            fieldMap.forEach((src, tgt) -> {
+                try {
+                    setNestedField(source, target, src, tgt);
+                } catch (Exception e) {
+                    throw new RuntimeException("Mapping error: " + e.getMessage(), e);
+                }
+            });
 
             return target;
         } catch (Exception e) {
@@ -94,24 +90,28 @@ public class XMLBasedMapper implements GenericMapper<Object, Object> {
     }
 
     private void setNestedField(Object source, Object target, String sourcePath, String targetPath) throws Exception {
-        Object sourceValue = getNestedFieldValue(source, sourcePath);
-        if (sourceValue != null) {
-            setNestedFieldValue(target, targetPath, sourceValue);
-        }
+        getNestedFieldValue(source, sourcePath)
+                .ifPresent(value -> {
+                    try {
+                        setNestedFieldValue(target, targetPath, value);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
-    private Object getNestedFieldValue(Object obj, String fieldPath) throws Exception {
-        String[] fields = fieldPath.split("\\.");
-        Object currentObj = obj;
-
-        for (String field : fields) {
-            if (currentObj == null) return null;
-            Field declaredField = currentObj.getClass().getDeclaredField(field);
-            declaredField.setAccessible(true);
-            currentObj = declaredField.get(currentObj);
+    private Optional<Object> getNestedFieldValue(Object obj, String fieldPath) {
+        try {
+            for (String field : fieldPath.split("\\.")) {
+                if (obj == null) return Optional.empty();
+                Field declaredField = obj.getClass().getDeclaredField(field);
+                declaredField.setAccessible(true);
+                obj = declaredField.get(obj);
+            }
+            return Optional.ofNullable(obj);
+        } catch (Exception e) {
+            return Optional.empty();
         }
-
-        return currentObj;
     }
 
     private void setNestedFieldValue(Object obj, String fieldPath, Object value) throws Exception {
@@ -132,14 +132,13 @@ public class XMLBasedMapper implements GenericMapper<Object, Object> {
 
         Field finalField = currentObj.getClass().getDeclaredField(fields[fields.length - 1]);
         finalField.setAccessible(true);
-
-        if (finalField.getType().isEnum() && value.getClass().isEnum()) {
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            Enum<?> enumValue = Enum.valueOf((Class<Enum>) finalField.getType(), ((Enum<?>) value).name());
-            finalField.set(currentObj, enumValue);
-        } else {
-            finalField.set(currentObj, value);
-        }
+        finalField.set(currentObj, convertValue(finalField.getType(), value));
     }
 
+    private Object convertValue(Class<?> fieldType, Object value) {
+        if (fieldType.isEnum()) {
+            return Enum.valueOf((Class<Enum>) fieldType, value instanceof Enum ? ((Enum<?>) value).name() : value.toString());
+        }
+        return value instanceof Enum ? ((Enum<?>) value).name() : value;
+    }
 }
