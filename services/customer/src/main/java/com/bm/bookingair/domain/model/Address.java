@@ -1,4 +1,4 @@
-package com.bm.bookingair.domain.model.address;
+package com.bm.bookingair.domain.model;
 
 import lombok.*;
 import org.springframework.validation.annotation.Validated;
