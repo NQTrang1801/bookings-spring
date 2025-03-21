@@ -10,8 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
-@RequestMapping("/api/v1/customer")
+@RequestMapping("/api/v1/customers")
 @RequiredArgsConstructor
 public class CustomerController {
 
@@ -19,12 +23,47 @@ public class CustomerController {
     private final XMLBasedMapper xmlBasedMapper;
 
     @PostMapping
-    public ResponseEntity<CustomerResDTO> createCustomer(
+    public CustomerResDTO createCustomer(
             @RequestBody @Valid CustomerReqDTO customerReqDTO,
             @RequestParam(required = false, defaultValue = "DEFAULT") String level
     ) {
         CustomerData customerData = customerFacades.createCustomer(customerReqDTO);
-        CustomerResDTO response = xmlBasedMapper.map(customerData, CustomerResDTO.class, level);
-        return ResponseEntity.ok(response);
+        return xmlBasedMapper.map(customerData, CustomerResDTO.class, level);
+    }
+
+    @GetMapping("/{id}")
+    public CustomerResDTO getCustomerById(
+            @PathVariable String id,
+            @RequestParam(required = false, defaultValue = "DEFAULT") String level
+    ) {
+        CustomerData customerData = customerFacades.getCustomerById(id);
+        return xmlBasedMapper.map(customerData, CustomerResDTO.class, level);
+    }
+
+
+    @GetMapping
+    public List<CustomerResDTO> getAllCustomers(
+            @RequestParam(required = false, defaultValue = "DEFAULT") String level
+    ) {
+        List<CustomerData> customers = customerFacades.getAllCustomers();
+        return customers.stream()
+                .map(customer -> xmlBasedMapper.map(customer, CustomerResDTO.class, level))
+                .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{id}")
+    public CustomerResDTO updateCustomer(
+            @PathVariable String id,
+            @RequestBody @Valid CustomerReqDTO customerReqDTO,
+            @RequestParam(required = false, defaultValue = "DEFAULT") String level
+    ) {
+        CustomerData updatedCustomer = customerFacades.updateCustomer(id, customerReqDTO);
+        return xmlBasedMapper.map(updatedCustomer, CustomerResDTO.class, level);
+    }
+
+
+    @DeleteMapping("/{id}")
+    public void deleteCustomer(@PathVariable String id) {
+        customerFacades.deleteCustomer(id);
     }
 }

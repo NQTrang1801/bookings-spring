@@ -1,7 +1,6 @@
-package com.bm.bookingair.domain.model.customer;
+package com.bm.bookingair.domain.model;
 
 import com.bm.bookingair.common.enums.Gender;
-import com.bm.bookingair.domain.model.address.Address;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.*;

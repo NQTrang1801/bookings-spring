@@ -2,7 +2,7 @@ package com.bm.bookingair.application.populator.impl.customer;
 
 import com.bm.bookingair.application.dataModel.address.AddressData;
 import com.bm.bookingair.application.dataModel.customer.CustomerData;
-import com.bm.bookingair.domain.model.customer.Customer;
+import com.bm.bookingair.domain.model.Customer;
 import com.bm.bookingair.application.populator.Populator;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +11,7 @@ public class CustomerModelToDataPopulor implements Populator<Customer, CustomerD
 
     @Override
     public void populate(Customer source, CustomerData target) {
+        target.setId(source.getId());
         target.setFirstName(source.getFirstName());
         target.setLastName(source.getLastName());
         target.setGender(source.getGender());

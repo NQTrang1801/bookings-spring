@@ -10,7 +10,7 @@ import lombok.Builder;
 public record CustomerReqDTO(
         @NotBlank(message = "First name is required") String firstName,
         @NotBlank(message = "Last name is required") String lastName,
-        @NotNull(message = "Sex is required") Gender gender,
+        @NotNull(message = "Gender is required") Gender gender,
         @Email(message = "Invalid email format") @NotBlank(message = "Email is required") String email,
         @NotBlank(message = "Phone number is required") String phone,
         Address address

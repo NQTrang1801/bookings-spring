@@ -14,7 +14,7 @@ public class CustomerDTOToDataPopulator implements Populator<CustomerReqDTO, Cus
     public void populate(CustomerReqDTO source, CustomerData target) {
         target.setFirstName(source.firstName());
         target.setLastName(source.lastName());
-        target.setGender(Gender.valueOf(source.gender().name()));
+        target.setGender(source.gender());
         target.setEmail(source.email());
         target.setPhone(source.phone());
         if (source.address() != null) {

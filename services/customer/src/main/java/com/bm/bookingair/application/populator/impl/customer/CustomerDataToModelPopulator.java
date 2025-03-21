@@ -1,8 +1,9 @@
 package com.bm.bookingair.application.populator.impl.customer;
 
 import com.bm.bookingair.application.dataModel.customer.CustomerData;
-import com.bm.bookingair.domain.model.address.Address;
-import com.bm.bookingair.domain.model.customer.Customer;
+import com.bm.bookingair.common.enums.Gender;
+import com.bm.bookingair.domain.model.Address;
+import com.bm.bookingair.domain.model.Customer;
 import com.bm.bookingair.application.populator.Populator;
 import org.springframework.stereotype.Component;
 
